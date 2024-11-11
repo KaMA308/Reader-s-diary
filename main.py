@@ -59,7 +59,7 @@ class MainTable(QWidget):
         self.con.commit()
         self.update()
 
-    # Доделать удаление информации о произведении
+
     def delName(self):
 
         input_id, ok_pressed = QInputDialog.getText(self, '', 'Введите id произведения, которое хотите удалить')
@@ -96,7 +96,7 @@ class MainInformation(QWidget):
         self.setWindowTitle(f'Информация по произведению {str(*cur_name)}')
 
         cur_author = self.cur.execute(f'SELECT author FROM information WHERE id = {id}').fetchall()
-        #НИЖЕ ВАЖНЫЕ СТРОКИ
+
         cur_author = [string[0] for string in cur_author]
         print('\n'.join(cur_author))
         self.authorText.setPlainText('\n'.join(cur_author))
@@ -112,7 +112,6 @@ class MainInformation(QWidget):
     def nextWidget(self):
         pass
 
-#Если меняется информация в поле то и в в sql таблице
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -120,4 +119,3 @@ if __name__ == '__main__':
     ex.show()
     # sys.excepthook = except_hook
     sys.exit(app.exec())
-#изменение шрифта при чтении
