@@ -16,9 +16,9 @@ from PyQt6.QtWidgets import (
 
 )
 
-#
-# def except_hook(cls, exception, traceback):
-#     sys.__excepthook__(cls, exception, traceback)
+
+def except_hook(cls, exception, traceback):
+    sys.__excepthook__(cls, exception, traceback)
 
 
 class MainTable(QWidget):
@@ -59,7 +59,7 @@ class MainTable(QWidget):
         self.con.commit()
         self.update()
 
-
+    # Доделать удаление вместе с именем информацию
     def delName(self):
 
         input_id, ok_pressed = QInputDialog.getText(self, '', 'Введите id произведения, которое хотите удалить')
@@ -84,25 +84,50 @@ class MainTable(QWidget):
 class MainInformation(QWidget):
     def __init__(self, id):
         super().__init__()
-        self.initUI(id)
+        self.id = id
+        self.initUI()
 
-    def initUI(self, id):
+    def initUI(self):
         self.con = sqlite3.connect('Books')
         self.cur = self.con.cursor()
 
 
         uic.loadUi('InfoWindow1.ui', self)
-        cur_name = self.cur.execute(f'SELECT name FROM literature WHERE id = {id}').fetchone()
+        cur_name = self.cur.execute(f'SELECT name FROM literature WHERE id = {self.id}').fetchone()
         self.setWindowTitle(f'Информация по произведению {str(*cur_name)}')
 
-        cur_author = self.cur.execute(f'SELECT author FROM information WHERE id = {id}').fetchall()
+        cur_author = self.cur.execute(f'SELECT author FROM information WHERE id = {self.id}').fetchone()
+        self.authorText.setPlainText(cur_author[0])
+        # При пустых значениях таблицы выдает ошибку
+        cur_author = self.cur.execute(f'SELECT characters FROM information WHERE id = {self.id}').fetchone()
+        self.charactersText.setPlainText(cur_author[0])
 
-        cur_author = [string[0] for string in cur_author]
-        print('\n'.join(cur_author))
-        self.authorText.setPlainText('\n'.join(cur_author))
+        cur_author = self.cur.execute(f'SELECT KeyPoints FROM information WHERE id = {self.id}').fetchone()
+        self.keyPointsText.setPlainText(cur_author[0])
 
         self.closeBtn.clicked.connect(self.closeWidget)
         self.nextWidBtn.clicked.connect(self.nextWidget)
+        self.saveAuth.clicked.connect(self.saveInfo)
+        self.saveChar.clicked.connect(self.saveInfo)
+        self.savePoints.clicked.connect(self.saveInfo)
+
+    def saveInfo(self):
+        if self.sender().objectName() == 'saveAuth':
+            sel_row = 'author'
+            sel_plain = self.authorText
+
+        elif self.sender().objectName() == 'saveChar':
+            sel_row = 'characters'
+            sel_plain = self.charactersText
+
+        elif self.sender().objectName() == 'savePoints':
+            sel_row = 'KeyPoints'
+            sel_plain = self.keyPointsText
+
+        info = sel_plain.toPlainText()
+
+        self.cur.execute(f"""UPDATE information SET {sel_row} = '{info}' WHERE id = {self.id}""")
+        self.con.commit()
 
     def closeWidget(self):
         self.main_widget = MainTable()
@@ -117,5 +142,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MainTable()
     ex.show()
-    # sys.excepthook = except_hook
+    sys.excepthook = except_hook
     sys.exit(app.exec())
+#изменение шрифта при чтении
