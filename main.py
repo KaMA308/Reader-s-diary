@@ -32,8 +32,7 @@ class MainTable(QWidget):
         self.NameTable.setModel(self.model)
 
     def initUI(self):
-        self.con = sqlite3.connect('Books')
-        self.cur = self.con.cursor()
+        self.initDb()
 
         uic.loadUi('MainWindow.ui', self)
 
@@ -48,6 +47,10 @@ class MainTable(QWidget):
         self.AddBtn.clicked.connect(self.addName)
         self.DelBtn.clicked.connect(self.delName)
         self.DataBtn.clicked.connect(self.nameInfo)
+
+    def initDb(self):
+        self.con = sqlite3.connect('Books')
+        self.cur = self.con.cursor()
 
     def addName(self):
 
@@ -81,16 +84,14 @@ class MainTable(QWidget):
             self.inf_widget.show()
 
 
-class MainInformation(QWidget):
+class MainInformation(MainTable, QWidget):
     def __init__(self, id):
-        super().__init__()
+        super(QWidget, self).__init__()
         self.id = id
         self.initUI()
 
     def initUI(self):
-        self.con = sqlite3.connect('Books')
-        self.cur = self.con.cursor()
-
+        super().initDb()
 
         uic.loadUi('InfoWindow1.ui', self)
         cur_name = self.cur.execute(f'SELECT name FROM literature WHERE id = {self.id}').fetchone()
@@ -110,6 +111,8 @@ class MainInformation(QWidget):
         self.saveAuth.clicked.connect(self.saveInfo)
         self.saveChar.clicked.connect(self.saveInfo)
         self.savePoints.clicked.connect(self.saveInfo)
+
+
 
     def saveInfo(self):
         if self.sender().objectName() == 'saveAuth':
@@ -135,7 +138,43 @@ class MainInformation(QWidget):
         self.main_widget.show()
 
     def nextWidget(self):
-        pass
+        self.inf_widget = MoreInformation(self.id)
+        MainInformation.hide(self)
+        self.inf_widget.show()
+
+
+class MoreInformation(MainInformation, MainTable, QWidget):
+    def __init__(self, id):
+        super().__init__(id)
+        self.id = id
+        self.initUI()
+
+    def initUI(self):
+        super().initDb()
+
+        uic.loadUi('InfoWindow2.ui', self)
+        cur_name = self.cur.execute(f'SELECT name FROM literature WHERE id = {self.id}').fetchone()
+        self.setWindowTitle(f'Дополнительная информация по произведению {str(*cur_name)}')
+
+        self.closeBtn.clicked.connect(self.closeWidget)
+        self.backBtn.clicked.connect(self.backWidget)
+        self.saveClash.clicked.connect(self.saveInfo)
+        self.saveArgum.clicked.connect(self.saveInfo)
+
+    def closeWidget(self):
+        super().closeWidget()
+        MoreInformation.hide(self)
+
+    def backWidget(self):
+        self.inf_widget = MainInformation(self.id)
+        MoreInformation.hide(self)
+        self.inf_widget.show()
+
+    def saveInfo(self):
+        pass #через super
+
+
+
 
 
 if __name__ == '__main__':
