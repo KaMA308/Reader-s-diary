@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QTableView,
     QApplication,
     QInputDialog,
-
+    QMessageBox
 )
 
 
@@ -57,6 +57,8 @@ class MainTable(QWidget):
 
         if ok_pressed:
             self.cur.execute(f"INSERT INTO literature(Name) VALUES('{input_name}')")
+            sel_id = self.cur.execute(f"SELECT id FROM literature WHERE name = '{input_name}'").fetchone()[0]
+            self.cur.execute(f"INSERT INTO information(id) VALUES({sel_id})")
 
         self.con.commit()
         self.update()
@@ -68,6 +70,7 @@ class MainTable(QWidget):
 
         if ok_pressed:
             self.cur.execute(f'DELETE from literature WHERE id = ("{input_id}")')
+            self.cur.execute(f'DELETE from information WHERE id = ("{input_id}")')
 
         self.con.commit()
         self.update()
@@ -78,9 +81,16 @@ class MainTable(QWidget):
                                                          'Введите id произведения, чтобы получить по нему информацию')
 
         if ok_pressed:
-            self.inf_widget = MainInformation(input_id)
-            MainTable.hide(self)
-            self.inf_widget.show()
+            if bool(self.cur.execute(f'SELECT id FROM literature WHERE id = {input_id}').fetchone()):
+                self.inf_widget = MainInformation(input_id)
+                MainTable.hide(self)
+                self.inf_widget.show()
+
+            else:
+                error_mes = QMessageBox()
+                error_mes.setWindowTitle('Ошибка')
+                error_mes.setText('Указанное id не найдено')
+                error_mes.exec()
 
 
 class MainInformation(MainTable, QWidget):
@@ -195,4 +205,3 @@ if __name__ == '__main__':
     ex.show()
     sys.excepthook = except_hook
     sys.exit(app.exec())
-#изменение шрифта при чтении
