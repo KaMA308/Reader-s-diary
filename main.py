@@ -53,7 +53,6 @@ class MainTable(QWidget):
         self.cur = self.con.cursor()
 
     def addName(self):
-
         input_name, ok_pressed = QInputDialog.getText(self, '', 'Введите название произведения')
 
         if ok_pressed:
@@ -127,6 +126,13 @@ class MainInformation(MainTable, QWidget):
             sel_row = 'KeyPoints'
             sel_plain = self.keyPointsText
 
+        elif self.sender().objectName() == 'saveClash':
+            sel_row = 'Clash'
+            sel_plain = self.clashText
+
+        elif self.sender().objectName() == 'saveArgum':
+            sel_row = 'Arguments'
+            sel_plain = self.argumText
         info = sel_plain.toPlainText()
 
         self.cur.execute(f"""UPDATE information SET {sel_row} = '{info}' WHERE id = {self.id}""")
@@ -156,6 +162,12 @@ class MoreInformation(MainInformation, MainTable, QWidget):
         cur_name = self.cur.execute(f'SELECT name FROM literature WHERE id = {self.id}').fetchone()
         self.setWindowTitle(f'Дополнительная информация по произведению {str(*cur_name)}')
 
+        cur_author = self.cur.execute(f'SELECT Clash FROM information WHERE id = {self.id}').fetchone()
+        self.clashText.setPlainText(cur_author[0])
+
+        cur_author = self.cur.execute(f'SELECT Arguments FROM information WHERE id = {self.id}').fetchone()
+        self.argumText.setPlainText(cur_author[0])
+
         self.closeBtn.clicked.connect(self.closeWidget)
         self.backBtn.clicked.connect(self.backWidget)
         self.saveClash.clicked.connect(self.saveInfo)
@@ -171,7 +183,7 @@ class MoreInformation(MainInformation, MainTable, QWidget):
         self.inf_widget.show()
 
     def saveInfo(self):
-        pass #через super
+        super().saveInfo()
 
 
 
