@@ -135,26 +135,49 @@ class MainInformation(MainTable, QWidget):
         self.editChar.clicked.connect(self.editLock)
         self.editKeyP.clicked.connect(self.editLock)
 
-    def saveInfo(self):
-        if self.sender().objectName() == 'saveAuth':
-            sel_row = 'author'
-            sel_plain = self.authorText
+    def saveInfo(self, plain=''):
 
-        elif self.sender().objectName() == 'saveChar':
-            sel_row = 'characters'
-            sel_plain = self.charactersText
+        if bool(plain):
+            if plain == 'saveAuth':
+                sel_row = 'author'
+                sel_plain = self.authorText
 
-        elif self.sender().objectName() == 'savePoints':
-            sel_row = 'KeyPoints'
-            sel_plain = self.keyPointsText
+            elif plain == 'saveChar':
+                sel_row = 'characters'
+                sel_plain = self.charactersText
 
-        elif self.sender().objectName() == 'saveClash':
-            sel_row = 'Clash'
-            sel_plain = self.clashText
+            elif plain == 'savePoints':
+                sel_row = 'KeyPoints'
+                sel_plain = self.keyPointsText
 
-        elif self.sender().objectName() == 'saveArgum':
-            sel_row = 'Arguments'
-            sel_plain = self.argumText
+            elif plain == 'saveClash':
+                sel_row = 'Clash'
+                sel_plain = self.clashText
+
+            elif plain == 'saveArgum':
+                sel_row = 'Arguments'
+                sel_plain = self.argumText
+
+        else:
+            if self.sender().objectName() == 'saveAuth':
+                sel_row = 'author'
+                sel_plain = self.authorText
+
+            elif self.sender().objectName() == 'saveChar':
+                sel_row = 'characters'
+                sel_plain = self.charactersText
+
+            elif self.sender().objectName() == 'savePoints' or plain == 'savePoints':
+                sel_row = 'KeyPoints'
+                sel_plain = self.keyPointsText
+
+            elif self.sender().objectName() == 'saveClash':
+                sel_row = 'Clash'
+                sel_plain = self.clashText
+
+            elif self.sender().objectName() == 'saveArgum':
+                sel_row = 'Arguments'
+                sel_plain = self.argumText
         info = sel_plain.toPlainText()
 
         self.cur.execute(f"""UPDATE information SET {sel_row} = '{info}' WHERE id = {self.id}""")
@@ -186,12 +209,39 @@ class MainInformation(MainTable, QWidget):
         elif self.sender().objectName() == 'editKeyP':
             sel_plain = self.keyPointsText
 
+        elif self.sender().objectName() == 'editClash':
+            sel_plain = self.clashText
+
+        elif self.sender().objectName() == 'editArgum':
+            sel_plain = self.argumText
+
         if sel_plain.isReadOnly():
             sel_plain.setReadOnly(False)
 
         else:
             sel_plain.setReadOnly(True)
 
+    def editLockHotKey(self, sel_plain):
+        if sel_plain == self.authorText:
+            sel_btn = self.editAut
+
+        elif sel_plain == self.charactersText:
+            sel_btn = self.editChar
+
+        elif sel_plain == self.keyPointsText:
+            sel_btn = self.editKeyP
+
+
+
+
+
+        if sel_plain.isReadOnly():
+            sel_plain.setReadOnly(False)
+            sel_btn.setText('Прекратить')
+
+        else:
+            sel_plain.setReadOnly(True)
+            sel_btn.setText('Редактировать')
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_N:
@@ -200,8 +250,25 @@ class MainInformation(MainTable, QWidget):
         elif event.key() == Qt.Key.Key_Escape:
             self.closeWidget()
 
+        elif event.modifiers() == Qt.KeyboardModifier.AltModifier:
+            if event.key() == Qt.Key.Key_A:
+                self.editLockHotKey(self.authorText)
 
+            elif event.key() == Qt.Key.Key_C:
+                self.editLockHotKey(self.charactersText)
 
+            elif event.key() == Qt.Key.Key_K:
+                self.editLockHotKey(self.keyPointsText)
+
+        elif event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+            if event.key() == Qt.Key.Key_A:
+                self.saveInfo(plain='saveAuth')
+
+            elif event.key() == Qt.Key.Key_C:
+                self.saveInfo(plain='saveChar')
+
+            elif event.key() == Qt.Key.Key_K:
+                self.saveInfo(plain='savePoints')
 
 
 class MoreInformation(MainInformation, MainTable, QWidget):
@@ -227,6 +294,8 @@ class MoreInformation(MainInformation, MainTable, QWidget):
         self.backBtn.clicked.connect(self.backWidget)
         self.saveClash.clicked.connect(self.saveInfo)
         self.saveArgum.clicked.connect(self.saveInfo)
+        self.editClash.clicked.connect(self.editLock)
+        self.editArgum.clicked.connect(self.editLock)
 
     def closeWidget(self):
         super().closeWidget()
@@ -239,6 +308,38 @@ class MoreInformation(MainInformation, MainTable, QWidget):
 
     def saveInfo(self):
         super().saveInfo()
+
+    def editLock(self):
+        super().editLock()
+
+    def editLockHotKey(self, sel_plain):
+        if sel_plain == self.argumText:
+            sel_btn = self.editArgum
+
+        elif sel_plain == self.clashText:
+            sel_btn = self.editClash
+
+        if sel_plain.isReadOnly():
+            sel_plain.setReadOnly(False)
+            sel_btn.setText('Прекратить')
+
+        else:
+            sel_plain.setReadOnly(True)
+            sel_btn.setText('Редактировать')
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.closeWidget()
+
+        elif event.key() == Qt.Key.Key_B:
+            self.backWidget()
+
+        elif event.modifiers() == Qt.KeyboardModifier.AltModifier:
+            if event.key() == Qt.Key.Key_A:
+                self.editLockHotKey(self.argumText)
+
+            elif event.key() == Qt.Key.Key_C:
+                self.editLockHotKey(self.clashText)
 
 
 if __name__ == '__main__':
