@@ -16,6 +16,8 @@ from PyQt6.QtWidgets import (
     QMessageBox
 )
 
+from PyQt6.QtCore import Qt
+
 
 def except_hook(cls, exception, traceback):
     sys.__excepthook__(cls, exception, traceback)
@@ -46,7 +48,7 @@ class MainTable(QWidget):
 
         self.AddBtn.clicked.connect(self.addName)
         self.DelBtn.clicked.connect(self.delName)
-        self.DataBtn.clicked.connect(self.nameInfo)
+        self.DataBtn.clicked.connect(self.openInfo)
 
     def initDb(self):
         self.con = sqlite3.connect('Books')
@@ -63,7 +65,16 @@ class MainTable(QWidget):
         self.con.commit()
         self.update()
 
-    # Доделать удаление вместе с именем информацию
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_O:
+            self.openInfo()
+
+        elif event.key() == Qt.Key.Key_D:
+            self.delName()
+
+        elif event.key() == Qt.Key.Key_A:
+            self.addName()
+
     def delName(self):
 
         input_id, ok_pressed = QInputDialog.getText(self, '', 'Введите id произведения, которое хотите удалить')
@@ -75,10 +86,10 @@ class MainTable(QWidget):
         self.con.commit()
         self.update()
 
-    def nameInfo(self):
+    def openInfo(self):
 
         input_id, ok_pressed = QInputDialog.getText(self, '',
-                                                         'Введите id произведения, чтобы получить по нему информацию')
+                                                    'Введите id произведения, чтобы получить по нему информацию')
 
         if ok_pressed:
             if bool(self.cur.execute(f'SELECT id FROM literature WHERE id = {input_id}').fetchone()):
@@ -120,8 +131,9 @@ class MainInformation(MainTable, QWidget):
         self.saveAuth.clicked.connect(self.saveInfo)
         self.saveChar.clicked.connect(self.saveInfo)
         self.savePoints.clicked.connect(self.saveInfo)
-
-
+        self.editAut.clicked.connect(self.editLock)
+        self.editChar.clicked.connect(self.editLock)
+        self.editKeyP.clicked.connect(self.editLock)
 
     def saveInfo(self):
         if self.sender().objectName() == 'saveAuth':
@@ -157,6 +169,39 @@ class MainInformation(MainTable, QWidget):
         self.inf_widget = MoreInformation(self.id)
         MainInformation.hide(self)
         self.inf_widget.show()
+
+    def editLock(self):
+        if self.sender().text() == 'Редактировать':
+            self.sender().setText('Прекратить')
+
+        else:
+            self.sender().setText('Редактировать')
+
+        if self.sender().objectName() == 'editAut':
+            sel_plain = self.authorText
+
+        elif self.sender().objectName() == 'editChar':
+            sel_plain = self.charactersText
+
+        elif self.sender().objectName() == 'editKeyP':
+            sel_plain = self.keyPointsText
+
+        if sel_plain.isReadOnly():
+            sel_plain.setReadOnly(False)
+
+        else:
+            sel_plain.setReadOnly(True)
+
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_N:
+            self.nextWidget()
+
+        elif event.key() == Qt.Key.Key_Escape:
+            self.closeWidget()
+
+
+
 
 
 class MoreInformation(MainInformation, MainTable, QWidget):
@@ -194,9 +239,6 @@ class MoreInformation(MainInformation, MainTable, QWidget):
 
     def saveInfo(self):
         super().saveInfo()
-
-
-
 
 
 if __name__ == '__main__':
