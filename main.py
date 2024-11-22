@@ -237,6 +237,9 @@ class MainInformation(MainTable, QWidget):
         elif sel_plain == self.keyPointsText:
             sel_btn = self.editKeyP
 
+        elif sel_plain == self.selText:
+            sel_btn = self.editBtn
+
         if sel_plain.isReadOnly():
             sel_plain.setReadOnly(False)
             sel_btn.setText('Прекратить')
@@ -387,7 +390,7 @@ class IncreaseInfo(MainInformation, MainTable, QWidget):
     def editLock(self):
         super().editLock()
 
-    def saveInfo(self, plain=''):
+    def saveInfo(self):
         info = self.selText.toPlainText()
         self.cur.execute(f"""UPDATE information SET {self.text} = '{info}' WHERE id = {self.id}""")
         self.con.commit()
@@ -396,6 +399,28 @@ class IncreaseInfo(MainInformation, MainTable, QWidget):
         self.inf_widget = MainInformation(self.id)
         IncreaseInfo.hide(self)
         self.inf_widget.show()
+
+    def editLockHotKey(self):
+        if self.selText.isReadOnly():
+            self.selText.setReadOnly(False)
+            self.editBtn.setText('Прекратить')
+
+        else:
+            self.selText.setReadOnly(True)
+            self.editBtn.setText('Редактировать')
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.closeWidget()
+
+        elif event.key() == Qt.Key.Key_E:
+            self.editLockHotKey()
+
+        elif event.key() == Qt.Key.Key_S:
+            self.saveInfo()
+
+        elif event.key() == Qt.Key.Key_Escape:
+            self.closeWidget()
 
 
 if __name__ == '__main__':
