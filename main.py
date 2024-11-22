@@ -117,14 +117,14 @@ class MainInformation(MainTable, QWidget):
         cur_name = self.cur.execute(f'SELECT name FROM literature WHERE id = {self.id}').fetchone()
         self.setWindowTitle(f'Информация по произведению {str(*cur_name)}')
 
-        cur_author = self.cur.execute(f'SELECT author FROM information WHERE id = {self.id}').fetchone()
-        self.authorText.setPlainText(cur_author[0])
-        # При пустых значениях таблицы выдает ошибку
-        cur_author = self.cur.execute(f'SELECT characters FROM information WHERE id = {self.id}').fetchone()
-        self.charactersText.setPlainText(cur_author[0])
+        cur_text = self.cur.execute(f'SELECT author FROM information WHERE id = {self.id}').fetchone()
+        self.authorText.setPlainText(cur_text[0])
 
-        cur_author = self.cur.execute(f'SELECT KeyPoints FROM information WHERE id = {self.id}').fetchone()
-        self.keyPointsText.setPlainText(cur_author[0])
+        cur_text = self.cur.execute(f'SELECT characters FROM information WHERE id = {self.id}').fetchone()
+        self.charactersText.setPlainText(cur_text[0])
+
+        cur_text = self.cur.execute(f'SELECT KeyPoints FROM information WHERE id = {self.id}').fetchone()
+        self.keyPointsText.setPlainText(cur_text[0])
 
         self.closeBtn.clicked.connect(self.closeWidget)
         self.nextWidBtn.clicked.connect(self.nextWidget)
@@ -134,6 +134,9 @@ class MainInformation(MainTable, QWidget):
         self.editAut.clicked.connect(self.editLock)
         self.editChar.clicked.connect(self.editLock)
         self.editKeyP.clicked.connect(self.editLock)
+        self.viewAuthor.clicked.connect(self.viewInfo)
+        self.viewCharacters.clicked.connect(self.viewInfo)
+        self.viewKeyPoints.clicked.connect(self.viewInfo)
 
     def saveInfo(self, plain=''):
 
@@ -167,7 +170,7 @@ class MainInformation(MainTable, QWidget):
                 sel_row = 'characters'
                 sel_plain = self.charactersText
 
-            elif self.sender().objectName() == 'savePoints' or plain == 'savePoints':
+            elif self.sender().objectName() == 'savePoints':
                 sel_row = 'KeyPoints'
                 sel_plain = self.keyPointsText
 
@@ -215,6 +218,9 @@ class MainInformation(MainTable, QWidget):
         elif self.sender().objectName() == 'editArgum':
             sel_plain = self.argumText
 
+        elif self.sender().objectName() == 'editBtn':
+            sel_plain = self.selText
+
         if sel_plain.isReadOnly():
             sel_plain.setReadOnly(False)
 
@@ -231,10 +237,6 @@ class MainInformation(MainTable, QWidget):
         elif sel_plain == self.keyPointsText:
             sel_btn = self.editKeyP
 
-
-
-
-
         if sel_plain.isReadOnly():
             sel_plain.setReadOnly(False)
             sel_btn.setText('Прекратить')
@@ -242,6 +244,13 @@ class MainInformation(MainTable, QWidget):
         else:
             sel_plain.setReadOnly(True)
             sel_btn.setText('Редактировать')
+
+    def viewInfo(self):
+        text = self.sender().objectName()[4:]
+
+        self.inf_widget = IncreaseInfo(self.id, text)
+        self.inf_widget.show()
+        MainInformation.hide(self)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_N:
@@ -296,6 +305,8 @@ class MoreInformation(MainInformation, MainTable, QWidget):
         self.saveArgum.clicked.connect(self.saveInfo)
         self.editClash.clicked.connect(self.editLock)
         self.editArgum.clicked.connect(self.editLock)
+        self.viewClash.clicked.connect(self.viewInfo)
+        self.viewArguments.clicked.connect(self.viewInfo)
 
     def closeWidget(self):
         super().closeWidget()
@@ -306,8 +317,8 @@ class MoreInformation(MainInformation, MainTable, QWidget):
         MoreInformation.hide(self)
         self.inf_widget.show()
 
-    def saveInfo(self):
-        super().saveInfo()
+    def saveInfo(self, plain=''):
+        super().saveInfo(plain)
 
     def editLock(self):
         super().editLock()
@@ -327,6 +338,9 @@ class MoreInformation(MainInformation, MainTable, QWidget):
             sel_plain.setReadOnly(True)
             sel_btn.setText('Редактировать')
 
+    def viewInfo(self):
+        super().viewInfo()
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
             self.closeWidget()
@@ -340,6 +354,48 @@ class MoreInformation(MainInformation, MainTable, QWidget):
 
             elif event.key() == Qt.Key.Key_C:
                 self.editLockHotKey(self.clashText)
+
+        elif event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+            if event.key() == Qt.Key.Key_A:
+                self.saveInfo(plain='saveArgum')
+
+            elif event.key() == Qt.Key.Key_C:
+                self.saveInfo(plain='saveClash')
+
+
+class IncreaseInfo(MainInformation, MainTable, QWidget):
+    def __init__(self, id, text):
+        super(QWidget, self).__init__()
+        self.id = id
+        self.text = text
+        self.initUI()
+
+    def initUI(self):
+        super().initDb()
+
+        uic.loadUi('increase infoWindow.ui', self)
+        cur_name = self.cur.execute(f'SELECT name FROM literature WHERE id = {self.id}').fetchone()
+        self.setWindowTitle(f'{str(*cur_name)}')
+
+        cur_text = self.cur.execute(f'SELECT {self.text} FROM information WHERE id = {self.id}').fetchone()
+        self.selText.setPlainText(cur_text[0])
+
+        self.editBtn.clicked.connect(self.editLock)
+        self.saveBtn.clicked.connect(self.saveInfo)
+        self.closeBtn.clicked.connect(self.closeWidget)
+
+    def editLock(self):
+        super().editLock()
+
+    def saveInfo(self, plain=''):
+        info = self.selText.toPlainText()
+        self.cur.execute(f"""UPDATE information SET {self.text} = '{info}' WHERE id = {self.id}""")
+        self.con.commit()
+
+    def closeWidget(self):
+        self.inf_widget = MainInformation(self.id)
+        IncreaseInfo.hide(self)
+        self.inf_widget.show()
 
 
 if __name__ == '__main__':

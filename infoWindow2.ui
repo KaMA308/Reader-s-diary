@@ -153,6 +153,42 @@
     <string>Редактировать</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="viewArguments">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>290</y>
+     <width>91</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>👁️</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="viewClash">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>500</y>
+     <width>91</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>👁️</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
