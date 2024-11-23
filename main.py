@@ -10,7 +10,6 @@ from PyQt6.QtSql import (
 
 from PyQt6.QtWidgets import (
     QWidget,
-    QTableView,
     QApplication,
     QInputDialog,
     QMessageBox
@@ -19,21 +18,21 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 
-def except_hook(cls, exception, traceback):
+def except_hook(cls, exception, traceback):  # Подробная информация об ошибке
     sys.__excepthook__(cls, exception, traceback)
 
 
-class MainTable(QWidget):
+class MainTable(QWidget):  # Основной виджет с таблицей произведений
     def __init__(self):
         super().__init__()
         self.initUI()
 
-    def update(self):
+    def update(self):  # Обновить таблицу с произведениями
         self.model.setTable('literature')
         self.model.select()
         self.NameTable.setModel(self.model)
 
-    def initUI(self):
+    def initUI(self):  # Подключить базу данных, таблицу к базе данных, интерфейс и кнопки
         self.initDb()
 
         uic.loadUi('MainWindow.ui', self)
@@ -50,11 +49,11 @@ class MainTable(QWidget):
         self.DelBtn.clicked.connect(self.delName)
         self.DataBtn.clicked.connect(self.openInfo)
 
-    def initDb(self):
+    def initDb(self):  # Подключить SQLite базу данных
         self.con = sqlite3.connect('Books')
         self.cur = self.con.cursor()
 
-    def addName(self):
+    def addName(self):  # Добавить произведение в таблицу
         input_name, ok_pressed = QInputDialog.getText(self, '', 'Введите название произведения')
 
         if ok_pressed:
@@ -65,7 +64,7 @@ class MainTable(QWidget):
         self.con.commit()
         self.update()
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event):  # Горячие клавиши
         if event.key() == Qt.Key.Key_O:
             self.openInfo()
 
@@ -75,18 +74,26 @@ class MainTable(QWidget):
         elif event.key() == Qt.Key.Key_A:
             self.addName()
 
-    def delName(self):
+    def delName(self):  # Удалить произведение и информацию о нем
 
         input_id, ok_pressed = QInputDialog.getText(self, '', 'Введите id произведения, которое хотите удалить')
 
         if ok_pressed:
-            self.cur.execute(f'DELETE from literature WHERE id = ("{input_id}")')
-            self.cur.execute(f'DELETE from information WHERE id = ("{input_id}")')
+            if bool(self.cur.execute(f'SELECT id FROM literature WHERE id = {input_id}').fetchone()):
+                self.cur.execute(f'DELETE from literature WHERE id = ("{input_id}")')
+                self.cur.execute(f'DELETE from information WHERE id = ("{input_id}")')
+
+            else:
+                error_mes = QMessageBox()
+                error_mes.setWindowTitle('Ошибка')
+                error_mes.setText('Указанное id не найдено')
+                error_mes.exec()
+
 
         self.con.commit()
         self.update()
 
-    def openInfo(self):
+    def openInfo(self):  # Открыть информацию о произведении
 
         input_id, ok_pressed = QInputDialog.getText(self, '',
                                                     'Введите id произведения, чтобы получить по нему информацию')
@@ -104,13 +111,13 @@ class MainTable(QWidget):
                 error_mes.exec()
 
 
-class MainInformation(MainTable, QWidget):
+class MainInformation(MainTable, QWidget):  # Виджет с информацией о произведении
     def __init__(self, id):
         super(QWidget, self).__init__()
         self.id = id
         self.initUI()
 
-    def initUI(self):
+    def initUI(self):  # Подключить базу данных, интерфейс, кнопки и заполнить текстовые поля информацией из БД
         super().initDb()
 
         uic.loadUi('InfoWindow1.ui', self)
@@ -138,7 +145,7 @@ class MainInformation(MainTable, QWidget):
         self.viewCharacters.clicked.connect(self.viewInfo)
         self.viewKeyPoints.clicked.connect(self.viewInfo)
 
-    def saveInfo(self, plain=''):
+    def saveInfo(self, plain=''):  # Сохранить информацию с текстовых полей в базу данных
 
         if bool(plain):
             if plain == 'saveAuth':
@@ -186,17 +193,17 @@ class MainInformation(MainTable, QWidget):
         self.cur.execute(f"""UPDATE information SET {sel_row} = '{info}' WHERE id = {self.id}""")
         self.con.commit()
 
-    def closeWidget(self):
+    def closeWidget(self):  # Закрыть текущий виджет и открыть виджет MainTable
         self.main_widget = MainTable()
         MainInformation.hide(self)
         self.main_widget.show()
 
-    def nextWidget(self):
+    def nextWidget(self):  # Открыть виджет MoreInformation
         self.inf_widget = MoreInformation(self.id)
         MainInformation.hide(self)
         self.inf_widget.show()
 
-    def editLock(self):
+    def editLock(self):  # Запретить/разрешить редактирование текстового поля
         if self.sender().text() == 'Редактировать':
             self.sender().setText('Прекратить')
 
@@ -227,7 +234,7 @@ class MainInformation(MainTable, QWidget):
         else:
             sel_plain.setReadOnly(True)
 
-    def editLockHotKey(self, sel_plain):
+    def editLockHotKey(self, sel_plain):  # Запретить/разрешить редактирование текстового поля при помощи горячих клавиш
         if sel_plain == self.authorText:
             sel_btn = self.editAut
 
@@ -248,14 +255,14 @@ class MainInformation(MainTable, QWidget):
             sel_plain.setReadOnly(True)
             sel_btn.setText('Редактировать')
 
-    def viewInfo(self):
+    def viewInfo(self):  # Открыть виджет IncreaseInfo для выбранного текстового поля
         text = self.sender().objectName()[4:]
 
         self.inf_widget = IncreaseInfo(self.id, text)
         self.inf_widget.show()
         MainInformation.hide(self)
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event):  # Горячие клавиши
         if event.key() == Qt.Key.Key_N:
             self.nextWidget()
 
@@ -283,13 +290,13 @@ class MainInformation(MainTable, QWidget):
                 self.saveInfo(plain='savePoints')
 
 
-class MoreInformation(MainInformation, MainTable, QWidget):
+class MoreInformation(MainInformation, MainTable, QWidget):  # Виджет с дополнительной информацией о произведении
     def __init__(self, id):
         super().__init__(id)
         self.id = id
         self.initUI()
 
-    def initUI(self):
+    def initUI(self):  # Подключить базу данных, интерфейс, кнопки и заполнить текстовые поля информацией из БД
         super().initDb()
 
         uic.loadUi('InfoWindow2.ui', self)
@@ -311,22 +318,22 @@ class MoreInformation(MainInformation, MainTable, QWidget):
         self.viewClash.clicked.connect(self.viewInfo)
         self.viewArguments.clicked.connect(self.viewInfo)
 
-    def closeWidget(self):
+    def closeWidget(self):  # Закрыть текущий виджет и открыть виджет MainTable
         super().closeWidget()
         MoreInformation.hide(self)
 
-    def backWidget(self):
+    def backWidget(self):  # Вернуться на виджет MainInformation
         self.inf_widget = MainInformation(self.id)
         MoreInformation.hide(self)
         self.inf_widget.show()
 
-    def saveInfo(self, plain=''):
+    def saveInfo(self, plain=''):  # Сохранить информацию с текстовых полей в базу данных
         super().saveInfo(plain)
 
-    def editLock(self):
+    def editLock(self):  # Запретить/разрешить редактирование текстового поля
         super().editLock()
 
-    def editLockHotKey(self, sel_plain):
+    def editLockHotKey(self, sel_plain):  # Запретить/разрешить редактирование текстового поля при помощи горячих клавиш
         if sel_plain == self.argumText:
             sel_btn = self.editArgum
 
@@ -341,10 +348,10 @@ class MoreInformation(MainInformation, MainTable, QWidget):
             sel_plain.setReadOnly(True)
             sel_btn.setText('Редактировать')
 
-    def viewInfo(self):
+    def viewInfo(self):  # Открыть виджет IncreaseInfo для выбранного текстового поля
         super().viewInfo()
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event):  # Горячие клавиши
         if event.key() == Qt.Key.Key_Escape:
             self.closeWidget()
 
@@ -366,14 +373,14 @@ class MoreInformation(MainInformation, MainTable, QWidget):
                 self.saveInfo(plain='saveClash')
 
 
-class IncreaseInfo(MainInformation, MainTable, QWidget):
+class IncreaseInfo(MainInformation, MainTable, QWidget):  # Виджет с увеличенным выбранным текстовым полем
     def __init__(self, id, text):
         super(QWidget, self).__init__()
         self.id = id
         self.text = text
         self.initUI()
 
-    def initUI(self):
+    def initUI(self):  # Подключить базу данных, интерфейс, кнопки и заполнить текстовое поле информацией из БД
         super().initDb()
 
         uic.loadUi('increase infoWindow.ui', self)
@@ -387,20 +394,20 @@ class IncreaseInfo(MainInformation, MainTable, QWidget):
         self.saveBtn.clicked.connect(self.saveInfo)
         self.closeBtn.clicked.connect(self.closeWidget)
 
-    def editLock(self):
+    def editLock(self):  # Запретить/разрешить редактирование текстового поля
         super().editLock()
 
-    def saveInfo(self):
+    def saveInfo(self):  # Сохранить информацию с текстовых полей в базу данных
         info = self.selText.toPlainText()
         self.cur.execute(f"""UPDATE information SET {self.text} = '{info}' WHERE id = {self.id}""")
         self.con.commit()
 
-    def closeWidget(self):
+    def closeWidget(self):  # Закрыть текущий виджет и открыть виджет MainInformation
         self.inf_widget = MainInformation(self.id)
         IncreaseInfo.hide(self)
         self.inf_widget.show()
 
-    def editLockHotKey(self):
+    def editLockHotKey(self):  # Запретить/разрешить редактирование текстового поля при помощи горячих клавиш
         if self.selText.isReadOnly():
             self.selText.setReadOnly(False)
             self.editBtn.setText('Прекратить')
@@ -409,7 +416,7 @@ class IncreaseInfo(MainInformation, MainTable, QWidget):
             self.selText.setReadOnly(True)
             self.editBtn.setText('Редактировать')
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event):  # Горячие клавиши
         if event.key() == Qt.Key.Key_Escape:
             self.closeWidget()
 
@@ -423,7 +430,7 @@ class IncreaseInfo(MainInformation, MainTable, QWidget):
             self.closeWidget()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # Запуск кода
     app = QApplication(sys.argv)
     ex = MainTable()
     ex.show()
