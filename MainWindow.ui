@@ -10,10 +10,25 @@
     <height>563</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>698</width>
+    <height>563</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>698</width>
+    <height>563</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <widget class="QTableView" name="NameTable">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>60</x>
