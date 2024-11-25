@@ -402,7 +402,7 @@ class IncreaseInfo(MainInformation, MainTable, QWidget):  # Виджет с ув
         self.cur.execute(f"""UPDATE information SET {self.text} = '{info}' WHERE id = {self.id}""")
         self.con.commit()
 
-    def closeWidget(self):  # Закрыть текущий виджет и открыть виджет MainInformation
+    def closeWidget(self):  # Закрыть текущее окно и открыть окно MainInformation
         self.inf_widget = MainInformation(self.id)
         IncreaseInfo.hide(self)
         self.inf_widget.show()
