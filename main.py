@@ -89,7 +89,6 @@ class MainTable(QWidget):  # Основной виджет с таблицей �
                 error_mes.setText('Указанное id не найдено')
                 error_mes.exec()
 
-
         self.con.commit()
         self.update()
 
@@ -111,7 +110,7 @@ class MainTable(QWidget):  # Основной виджет с таблицей �
                 error_mes.exec()
 
 
-class MainInformation(MainTable, QWidget):  # Виджет с информацией о произведении
+class MainInformation(MainTable, QWidget):  # Окно с информацией о произведении
     def __init__(self, id):
         super(QWidget, self).__init__()
         self.id = id
@@ -193,12 +192,12 @@ class MainInformation(MainTable, QWidget):  # Виджет с информаци
         self.cur.execute(f"""UPDATE information SET {sel_row} = '{info}' WHERE id = {self.id}""")
         self.con.commit()
 
-    def closeWidget(self):  # Закрыть текущий виджет и открыть виджет MainTable
+    def closeWidget(self):  # Закрыть текущее окно и открыть окно MainTable
         self.main_widget = MainTable()
         MainInformation.hide(self)
         self.main_widget.show()
 
-    def nextWidget(self):  # Открыть виджет MoreInformation
+    def nextWidget(self):  # Открыть окно MoreInformation
         self.inf_widget = MoreInformation(self.id)
         MainInformation.hide(self)
         self.inf_widget.show()
@@ -255,7 +254,7 @@ class MainInformation(MainTable, QWidget):  # Виджет с информаци
             sel_plain.setReadOnly(True)
             sel_btn.setText('Редактировать')
 
-    def viewInfo(self):  # Открыть виджет IncreaseInfo для выбранного текстового поля
+    def viewInfo(self):  # Открыть окно IncreaseInfo для выбранного текстового поля
         text = self.sender().objectName()[4:]
 
         self.inf_widget = IncreaseInfo(self.id, text)
@@ -290,7 +289,7 @@ class MainInformation(MainTable, QWidget):  # Виджет с информаци
                 self.saveInfo(plain='savePoints')
 
 
-class MoreInformation(MainInformation, MainTable, QWidget):  # Виджет с дополнительной информацией о произведении
+class MoreInformation(MainInformation, MainTable, QWidget):  # Окно с дополнительной информацией о произведении
     def __init__(self, id):
         super().__init__(id)
         self.id = id
@@ -318,11 +317,11 @@ class MoreInformation(MainInformation, MainTable, QWidget):  # Виджет с �
         self.viewClash.clicked.connect(self.viewInfo)
         self.viewArguments.clicked.connect(self.viewInfo)
 
-    def closeWidget(self):  # Закрыть текущий виджет и открыть виджет MainTable
+    def closeWidget(self):  # Закрыть текущее окно и открыть окно MainTable
         super().closeWidget()
         MoreInformation.hide(self)
 
-    def backWidget(self):  # Вернуться на виджет MainInformation
+    def backWidget(self):  # Вернуться на окно MainInformation
         self.inf_widget = MainInformation(self.id)
         MoreInformation.hide(self)
         self.inf_widget.show()
@@ -348,7 +347,7 @@ class MoreInformation(MainInformation, MainTable, QWidget):  # Виджет с �
             sel_plain.setReadOnly(True)
             sel_btn.setText('Редактировать')
 
-    def viewInfo(self):  # Открыть виджет IncreaseInfo для выбранного текстового поля
+    def viewInfo(self):  # Открыть окно IncreaseInfo для выбранного текстового поля
         super().viewInfo()
 
     def keyPressEvent(self, event):  # Горячие клавиши
@@ -373,7 +372,7 @@ class MoreInformation(MainInformation, MainTable, QWidget):  # Виджет с �
                 self.saveInfo(plain='saveClash')
 
 
-class IncreaseInfo(MainInformation, MainTable, QWidget):  # Виджет с увеличенным выбранным текстовым полем
+class IncreaseInfo(MainInformation, MainTable, QWidget):  # Окно с увеличенным выбранным текстовым полем
     def __init__(self, id, text):
         super(QWidget, self).__init__()
         self.id = id
